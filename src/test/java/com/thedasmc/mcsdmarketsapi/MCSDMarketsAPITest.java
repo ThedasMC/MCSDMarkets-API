@@ -2,7 +2,9 @@ package com.thedasmc.mcsdmarketsapi;
 
 import com.thedasmc.mcsdmarketsapi.enums.TransactionType;
 import com.thedasmc.mcsdmarketsapi.request.CreateTransactionRequest;
+import com.thedasmc.mcsdmarketsapi.request.GetItemsRequest;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.CreateTransactionResponseWrapper;
+import com.thedasmc.mcsdmarketsapi.response.wrapper.GetItemsResponseWrapper;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.PriceResponseWrapperWrapper;
 import org.junit.jupiter.api.Test;
 
@@ -61,6 +63,34 @@ public class MCSDMarketsAPITest {
         request.setQuantity(0);//Must be > 0, will result in error response
 
         CreateTransactionResponseWrapper responseWrapper = api.createTransaction(request);
+        System.out.println(responseWrapper);
+        assertFalse(responseWrapper.isSuccessful());
+        assertNull(responseWrapper.getSuccessfulResponse());
+        assertNotNull(responseWrapper.getErrorResponse());
+    }
+
+    @Test
+    public void testGetItemsSuccessfulResponse() throws IOException {
+        GetItemsRequest request = new GetItemsRequest();
+        request.setPage(0);
+        request.setPageSize(10);
+        request.setMcVersion("1.0");
+
+        GetItemsResponseWrapper responseWrapper = api.getItems(request);
+        System.out.println(responseWrapper);
+        assertTrue(responseWrapper.isSuccessful());
+        assertNotNull(responseWrapper.getSuccessfulResponse());
+        assertNull(responseWrapper.getErrorResponse());
+    }
+
+    @Test
+    public void testGetItemsUnsuccessfulResponse() throws IOException {
+        GetItemsRequest request = new GetItemsRequest();
+        request.setPage(0);
+        request.setPageSize(10);
+        request.setMcVersion("1");//Invalid version string
+
+        GetItemsResponseWrapper responseWrapper = api.getItems(request);
         System.out.println(responseWrapper);
         assertFalse(responseWrapper.isSuccessful());
         assertNull(responseWrapper.getSuccessfulResponse());

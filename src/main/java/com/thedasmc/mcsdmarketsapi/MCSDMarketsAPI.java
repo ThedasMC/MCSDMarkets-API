@@ -3,11 +3,16 @@ package com.thedasmc.mcsdmarketsapi;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.thedasmc.mcsdmarketsapi.json.deserializer.CreateTransactionResponseDeserializer;
+import com.thedasmc.mcsdmarketsapi.json.deserializer.GetItemsResponseDeserializer;
 import com.thedasmc.mcsdmarketsapi.json.serializer.CreateTransactionRequestSerializer;
 import com.thedasmc.mcsdmarketsapi.request.CreateTransactionRequest;
+import com.thedasmc.mcsdmarketsapi.request.GetItemsRequest;
+import com.thedasmc.mcsdmarketsapi.request.PageRequest;
 import com.thedasmc.mcsdmarketsapi.response.impl.ErrorResponse;
 import com.thedasmc.mcsdmarketsapi.response.impl.CreateTransactionResponse;
+import com.thedasmc.mcsdmarketsapi.response.impl.GetItemsResponse;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.CreateTransactionResponseWrapper;
+import com.thedasmc.mcsdmarketsapi.response.wrapper.GetItemsResponseWrapper;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.PriceResponseWrapperWrapper;
 
 import java.io.*;
@@ -25,6 +30,7 @@ public class MCSDMarketsAPI {
     private static final String BASE_URL_TEST = "http://localhost";
     private static final String GET_PRICE_URI = "/v1/item/{material}/price";
     private static final String CREATE_TRANSACTION_URI = "/v1/transaction";
+    private static final String GET_ITEMS_URI = "/v1/items";
 
     private final String apiKey;
     private final boolean testMode;
@@ -40,6 +46,7 @@ public class MCSDMarketsAPI {
 
         this.gson = new GsonBuilder()
             .registerTypeAdapter(CreateTransactionResponse.class, new CreateTransactionResponseDeserializer())
+            .registerTypeAdapter(GetItemsResponse.class, new GetItemsResponseDeserializer())
             .registerTypeAdapter(CreateTransactionRequest.class, new CreateTransactionRequestSerializer())
             .create();
     }
@@ -86,6 +93,27 @@ public class MCSDMarketsAPI {
         }
 
         return createTransactionResponseWrapper;
+    }
+
+    /**
+     * Get available items by page
+     * @param request The {@link GetItemsRequest} containing the page details and mcVersion
+     * @return A {@link GetItemsResponseWrapper} containing the successful/error responses
+     * @throws IOException If an error communicating with the destination fails
+     */
+    public GetItemsResponseWrapper getItems(GetItemsRequest request) throws IOException {
+        HttpURLConnection connection = getPostHttpConnection(getBaseUrl() + GET_ITEMS_URI, request);
+        GetItemsResponseWrapper getItemsResponseWrapper = new GetItemsResponseWrapper();
+
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            GetItemsResponse response = gson.fromJson(new InputStreamReader(connection.getInputStream()), GetItemsResponse.class);
+            getItemsResponseWrapper.setSuccessful(true);
+            getItemsResponseWrapper.setSuccessfulResponse(response);
+        } else {
+            getItemsResponseWrapper.setErrorResponse(getErrorResponse(connection));
+        }
+
+        return getItemsResponseWrapper;
     }
 
     private String getBaseUrl() {
