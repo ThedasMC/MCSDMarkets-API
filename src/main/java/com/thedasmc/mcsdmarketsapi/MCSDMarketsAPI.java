@@ -7,15 +7,17 @@ import com.thedasmc.mcsdmarketsapi.json.deserializer.GetItemsResponseDeserialize
 import com.thedasmc.mcsdmarketsapi.json.serializer.CreateTransactionRequestSerializer;
 import com.thedasmc.mcsdmarketsapi.request.CreateTransactionRequest;
 import com.thedasmc.mcsdmarketsapi.request.GetItemsRequest;
-import com.thedasmc.mcsdmarketsapi.request.PageRequest;
-import com.thedasmc.mcsdmarketsapi.response.impl.ErrorResponse;
 import com.thedasmc.mcsdmarketsapi.response.impl.CreateTransactionResponse;
+import com.thedasmc.mcsdmarketsapi.response.impl.ErrorResponse;
 import com.thedasmc.mcsdmarketsapi.response.impl.GetItemsResponse;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.CreateTransactionResponseWrapper;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.GetItemsResponseWrapper;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.PriceResponseWrapperWrapper;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
