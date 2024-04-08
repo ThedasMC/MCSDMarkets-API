@@ -2,14 +2,13 @@ package com.thedasmc.mcsdmarketsapi;
 
 import com.thedasmc.mcsdmarketsapi.enums.TransactionType;
 import com.thedasmc.mcsdmarketsapi.request.CreateTransactionRequest;
-import com.thedasmc.mcsdmarketsapi.request.GetItemsRequest;
+import com.thedasmc.mcsdmarketsapi.request.ItemPageRequest;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.CreateTransactionResponseWrapper;
-import com.thedasmc.mcsdmarketsapi.response.wrapper.GetItemsResponseWrapper;
-import com.thedasmc.mcsdmarketsapi.response.wrapper.PriceResponseWrapperWrapper;
+import com.thedasmc.mcsdmarketsapi.response.wrapper.ItemPageResponseWrapper;
+import com.thedasmc.mcsdmarketsapi.response.wrapper.ItemResponseWrapper;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,18 +19,17 @@ public class MCSDMarketsAPITest {
     private final MCSDMarketsAPI api = new MCSDMarketsAPI("abc123", true);
 
     @Test
-    public void testGetPriceSuccessfulResponse() throws IOException {
-        PriceResponseWrapperWrapper responseWrapper = api.getPrice("DIAMOND");
+    public void testGetItemSuccessfulResponse() throws IOException {
+        ItemResponseWrapper responseWrapper = api.getItem("DIAMOND");
         System.out.println(responseWrapper);
         assertTrue(responseWrapper.isSuccessful());
         assertNotNull(responseWrapper.getSuccessfulResponse());
-        assertTrue(responseWrapper.getSuccessfulResponse().compareTo(BigDecimal.ZERO) > 0);
         assertNull(responseWrapper.getErrorResponse());
     }
 
     @Test
-    public void testGetPriceUnsuccessfulResponse() throws IOException {
-        PriceResponseWrapperWrapper responseWrapper = api.getPrice("INVALID_MATERIAL");
+    public void testGetItemUnsuccessfulResponse() throws IOException {
+        ItemResponseWrapper responseWrapper = api.getItem("INVALID_MATERIAL");
         System.out.println(responseWrapper);
         assertFalse(responseWrapper.isSuccessful());
         assertNull(responseWrapper.getSuccessfulResponse());
@@ -71,12 +69,12 @@ public class MCSDMarketsAPITest {
 
     @Test
     public void testGetItemsSuccessfulResponse() throws IOException {
-        GetItemsRequest request = new GetItemsRequest();
+        ItemPageRequest request = new ItemPageRequest();
         request.setPage(0);
         request.setPageSize(10);
         request.setMcVersion("1.0");
 
-        GetItemsResponseWrapper responseWrapper = api.getItems(request);
+        ItemPageResponseWrapper responseWrapper = api.getItems(request);
         System.out.println(responseWrapper);
         assertTrue(responseWrapper.isSuccessful());
         assertNotNull(responseWrapper.getSuccessfulResponse());
@@ -85,12 +83,12 @@ public class MCSDMarketsAPITest {
 
     @Test
     public void testGetItemsUnsuccessfulResponse() throws IOException {
-        GetItemsRequest request = new GetItemsRequest();
+        ItemPageRequest request = new ItemPageRequest();
         request.setPage(0);
         request.setPageSize(10);
         request.setMcVersion("1");//Invalid version string
 
-        GetItemsResponseWrapper responseWrapper = api.getItems(request);
+        ItemPageResponseWrapper responseWrapper = api.getItems(request);
         System.out.println(responseWrapper);
         assertFalse(responseWrapper.isSuccessful());
         assertNull(responseWrapper.getSuccessfulResponse());

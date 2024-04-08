@@ -1,6 +1,6 @@
 package com.thedasmc.mcsdmarketsapi.request;
 
-public class GetItemsRequest extends PageRequest {
+public class ItemPageRequest extends PageRequest {
 
     private String mcVersion;
 

@@ -3,22 +3,23 @@ package com.thedasmc.mcsdmarketsapi;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.thedasmc.mcsdmarketsapi.json.deserializer.CreateTransactionResponseDeserializer;
-import com.thedasmc.mcsdmarketsapi.json.deserializer.GetItemsResponseDeserializer;
+import com.thedasmc.mcsdmarketsapi.json.deserializer.ItemPageResponseDeserializer;
+import com.thedasmc.mcsdmarketsapi.json.deserializer.ItemResponseDeserializer;
 import com.thedasmc.mcsdmarketsapi.json.serializer.CreateTransactionRequestSerializer;
 import com.thedasmc.mcsdmarketsapi.request.CreateTransactionRequest;
-import com.thedasmc.mcsdmarketsapi.request.GetItemsRequest;
+import com.thedasmc.mcsdmarketsapi.request.ItemPageRequest;
 import com.thedasmc.mcsdmarketsapi.response.impl.CreateTransactionResponse;
 import com.thedasmc.mcsdmarketsapi.response.impl.ErrorResponse;
-import com.thedasmc.mcsdmarketsapi.response.impl.GetItemsResponse;
+import com.thedasmc.mcsdmarketsapi.response.impl.ItemPageResponse;
+import com.thedasmc.mcsdmarketsapi.response.impl.ItemResponse;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.CreateTransactionResponseWrapper;
-import com.thedasmc.mcsdmarketsapi.response.wrapper.GetItemsResponseWrapper;
-import com.thedasmc.mcsdmarketsapi.response.wrapper.PriceResponseWrapperWrapper;
+import com.thedasmc.mcsdmarketsapi.response.wrapper.ItemPageResponseWrapper;
+import com.thedasmc.mcsdmarketsapi.response.wrapper.ItemResponseWrapper;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -30,7 +31,7 @@ public class MCSDMarketsAPI {
 
     private static final String BASE_URL = "https://api.thedasmc.com";
     private static final String BASE_URL_TEST = "http://localhost";
-    private static final String GET_PRICE_URI = "/v1/item/{material}/price";
+    private static final String GET_PRICE_URI = "/v1/item/{material}";
     private static final String CREATE_TRANSACTION_URI = "/v1/transaction";
     private static final String GET_ITEMS_URI = "/v1/items";
 
@@ -48,27 +49,27 @@ public class MCSDMarketsAPI {
 
         this.gson = new GsonBuilder()
             .registerTypeAdapter(CreateTransactionResponse.class, new CreateTransactionResponseDeserializer())
-            .registerTypeAdapter(GetItemsResponse.class, new GetItemsResponseDeserializer())
+            .registerTypeAdapter(ItemResponseDeserializer.class, new ItemResponseDeserializer())
+            .registerTypeAdapter(ItemPageResponse.class, new ItemPageResponseDeserializer())
             .registerTypeAdapter(CreateTransactionRequest.class, new CreateTransactionRequestSerializer())
             .create();
     }
 
     /**
-     * Get the price of a material/item
+     * Get the material/item data, such as pricing
      * @param materialName The >= 1.13 material name
-     * @return {@link PriceResponseWrapperWrapper} containing the successful/error responses
+     * @return {@link ItemResponseWrapper} containing the successful/error responses
      * @throws IOException If an error communicating with the destination fails
      */
-    public PriceResponseWrapperWrapper getPrice(String materialName) throws IOException {
+    public ItemResponseWrapper getItem(String materialName) throws IOException {
         HttpURLConnection connection = getGetHttpConnection(
             getBaseUrl() + GET_PRICE_URI.replace("{material}", materialName.trim().toUpperCase()));
-        PriceResponseWrapperWrapper priceResponseWrapper = new PriceResponseWrapperWrapper();
+        ItemResponseWrapper priceResponseWrapper = new ItemResponseWrapper();
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            String priceString = getResponseAsString(connection);
-            BigDecimal price = BigDecimal.valueOf(Double.parseDouble(priceString));
+            ItemResponse response = gson.fromJson(new InputStreamReader(connection.getInputStream()), ItemResponse.class);
             priceResponseWrapper.setSuccessful(true);
-            priceResponseWrapper.setSuccessfulResponse(price);
+            priceResponseWrapper.setSuccessfulResponse(response);
         } else {
             priceResponseWrapper.setErrorResponse(getErrorResponse(connection));
         }
@@ -99,23 +100,23 @@ public class MCSDMarketsAPI {
 
     /**
      * Get available items by page
-     * @param request The {@link GetItemsRequest} containing the page details and mcVersion
-     * @return A {@link GetItemsResponseWrapper} containing the successful/error responses
+     * @param request The {@link ItemPageRequest} containing the page details and mcVersion
+     * @return A {@link ItemPageResponseWrapper} containing the successful/error responses
      * @throws IOException If an error communicating with the destination fails
      */
-    public GetItemsResponseWrapper getItems(GetItemsRequest request) throws IOException {
+    public ItemPageResponseWrapper getItems(ItemPageRequest request) throws IOException {
         HttpURLConnection connection = getPostHttpConnection(getBaseUrl() + GET_ITEMS_URI, request);
-        GetItemsResponseWrapper getItemsResponseWrapper = new GetItemsResponseWrapper();
+        ItemPageResponseWrapper itemPageResponseWrapper = new ItemPageResponseWrapper();
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            GetItemsResponse response = gson.fromJson(new InputStreamReader(connection.getInputStream()), GetItemsResponse.class);
-            getItemsResponseWrapper.setSuccessful(true);
-            getItemsResponseWrapper.setSuccessfulResponse(response);
+            ItemPageResponse response = gson.fromJson(new InputStreamReader(connection.getInputStream()), ItemPageResponse.class);
+            itemPageResponseWrapper.setSuccessful(true);
+            itemPageResponseWrapper.setSuccessfulResponse(response);
         } else {
-            getItemsResponseWrapper.setErrorResponse(getErrorResponse(connection));
+            itemPageResponseWrapper.setErrorResponse(getErrorResponse(connection));
         }
 
-        return getItemsResponseWrapper;
+        return itemPageResponseWrapper;
     }
 
     private String getBaseUrl() {
