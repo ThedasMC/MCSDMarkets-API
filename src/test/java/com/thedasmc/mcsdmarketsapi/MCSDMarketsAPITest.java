@@ -78,6 +78,7 @@ public class MCSDMarketsAPITest {
         System.out.println(responseWrapper);
         assertTrue(responseWrapper.isSuccessful());
         assertNotNull(responseWrapper.getSuccessfulResponse());
+        assertFalse(responseWrapper.getSuccessfulResponse().getItems().isEmpty());
         assertNull(responseWrapper.getErrorResponse());
     }
 
