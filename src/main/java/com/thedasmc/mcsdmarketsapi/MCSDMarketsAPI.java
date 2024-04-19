@@ -16,7 +16,6 @@ import com.thedasmc.mcsdmarketsapi.response.wrapper.CreateTransactionResponseWra
 import com.thedasmc.mcsdmarketsapi.response.wrapper.ItemPageResponseWrapper;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.ItemResponseWrapper;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -157,22 +156,6 @@ public class MCSDMarketsAPI {
 
     private ErrorResponse getErrorResponse(HttpURLConnection connection) {
         return gson.fromJson(new InputStreamReader(connection.getErrorStream()), ErrorResponse.class);
-    }
-
-    private String getResponseAsString(HttpURLConnection connection) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-            StringBuilder builder = new StringBuilder();
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (builder.length() > 0)
-                    builder.append(System.lineSeparator());
-
-                builder.append(line);
-            }
-
-            return builder.toString();
-        }
     }
 
 }
