@@ -8,6 +8,10 @@ public class ItemPageRequest extends PageRequest {
         return mcVersion;
     }
 
+    /**
+     * Sets the MC version of this server, so it will return compatible items
+     * @param mcVersion The version string such as 1.20.4, 1.20, etc.
+     */
     public void setMcVersion(String mcVersion) {
         this.mcVersion = mcVersion;
     }
