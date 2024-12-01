@@ -2,7 +2,7 @@ package com.thedasmc.mcsdmarketsapi;
 
 import com.thedasmc.mcsdmarketsapi.enums.TransactionType;
 import com.thedasmc.mcsdmarketsapi.request.CreateTransactionRequest;
-import com.thedasmc.mcsdmarketsapi.request.ItemPageRequest;
+import com.thedasmc.mcsdmarketsapi.request.PageRequest;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.CreateTransactionResponseWrapper;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.ItemPageResponseWrapper;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.ItemResponseWrapper;
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class MCSDMarketsAPITest {
 
     //Change this to use your own real api key
-    private final MCSDMarketsAPI api = new MCSDMarketsAPI("abc123", true);
+    private final MCSDMarketsAPI api = new MCSDMarketsAPI("abc123", "1.21.3", true);
 
     @Test
     public void testGetItemSuccessfulResponse() throws IOException {
@@ -69,10 +69,9 @@ public class MCSDMarketsAPITest {
 
     @Test
     public void testGetItemsSuccessfulResponse() throws IOException {
-        ItemPageRequest request = new ItemPageRequest();
+        PageRequest request = new PageRequest();
         request.setPage(0);
         request.setPageSize(10);
-        request.setMcVersion("1.0");
 
         ItemPageResponseWrapper responseWrapper = api.getItems(request);
         System.out.println(responseWrapper);
@@ -80,19 +79,5 @@ public class MCSDMarketsAPITest {
         assertNotNull(responseWrapper.getSuccessfulResponse());
         assertFalse(responseWrapper.getSuccessfulResponse().getItems().isEmpty());
         assertNull(responseWrapper.getErrorResponse());
-    }
-
-    @Test
-    public void testGetItemsUnsuccessfulResponse() throws IOException {
-        ItemPageRequest request = new ItemPageRequest();
-        request.setPage(0);
-        request.setPageSize(10);
-        request.setMcVersion("1");//Invalid version string
-
-        ItemPageResponseWrapper responseWrapper = api.getItems(request);
-        System.out.println(responseWrapper);
-        assertFalse(responseWrapper.isSuccessful());
-        assertNull(responseWrapper.getSuccessfulResponse());
-        assertNotNull(responseWrapper.getErrorResponse());
     }
 }

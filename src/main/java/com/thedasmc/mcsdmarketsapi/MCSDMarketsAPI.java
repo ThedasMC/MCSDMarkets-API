@@ -7,7 +7,7 @@ import com.thedasmc.mcsdmarketsapi.json.deserializer.ItemPageResponseDeserialize
 import com.thedasmc.mcsdmarketsapi.json.deserializer.ItemResponseDeserializer;
 import com.thedasmc.mcsdmarketsapi.json.serializer.CreateTransactionRequestSerializer;
 import com.thedasmc.mcsdmarketsapi.request.CreateTransactionRequest;
-import com.thedasmc.mcsdmarketsapi.request.ItemPageRequest;
+import com.thedasmc.mcsdmarketsapi.request.PageRequest;
 import com.thedasmc.mcsdmarketsapi.response.impl.CreateTransactionResponse;
 import com.thedasmc.mcsdmarketsapi.response.impl.ErrorResponse;
 import com.thedasmc.mcsdmarketsapi.response.impl.ItemPageResponse;
@@ -31,20 +31,23 @@ public class MCSDMarketsAPI {
     private static final String BASE_URL = "https://api.thedasmc.com";
     private static final String BASE_URL_TEST = "http://localhost";
     private static final String GET_PRICE_URI = "/v1/item/{material}";
+    private static final String GET_LEGACY_PRICE_URI = "/v1/item/{material}/{data}";
     private static final String CREATE_TRANSACTION_URI = "/v1/transaction";
     private static final String GET_ITEMS_URI = "/v1/items";
 
     private final String apiKey;
+    private final String mcVersion;
     private final boolean testMode;
     private final Gson gson;
 
-    public MCSDMarketsAPI(String apiKey) {
-        this(apiKey, false);
+    public MCSDMarketsAPI(String apiKey, String mcVersion) {
+        this(apiKey, mcVersion, false);
     }
 
-    public MCSDMarketsAPI(String apiKey, boolean testMode) {
+    public MCSDMarketsAPI(String apiKey, String mcVersion, boolean testMode) {
         this.testMode = testMode;
         this.apiKey = apiKey;
+        this.mcVersion = mcVersion;
 
         this.gson = new GsonBuilder()
             .registerTypeAdapter(CreateTransactionResponse.class, new CreateTransactionResponseDeserializer())
@@ -56,13 +59,22 @@ public class MCSDMarketsAPI {
 
     /**
      * Get the material/item data, such as pricing
-     * @param materialName The >= 1.13 material name
+     * @param materialName The material name. Works with old and new Materials
+     * @param data The legacy data used when creating an ItemStack (<1.13)
      * @return {@link ItemResponseWrapper} containing the successful/error responses
      * @throws IOException If an error communicating with the destination fails
      */
-    public ItemResponseWrapper getItem(String materialName) throws IOException {
-        HttpURLConnection connection = getGetHttpConnection(
-            getBaseUrl() + GET_PRICE_URI.replace("{material}", materialName.trim().toUpperCase()));
+    public ItemResponseWrapper getItem(String materialName, Integer data) throws IOException {
+        HttpURLConnection connection;
+
+        if (data == null) {
+            connection = getGetHttpConnection(
+                getBaseUrl() + GET_PRICE_URI.replace("{material}", materialName.trim().toUpperCase()));
+        } else {
+            connection = getHttpConnection(
+                getBaseUrl() + GET_LEGACY_PRICE_URI.replace("{material}", materialName.trim().toUpperCase()).replace("{data}", String.valueOf(data)));
+        }
+
         ItemResponseWrapper priceResponseWrapper = new ItemResponseWrapper();
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -74,6 +86,10 @@ public class MCSDMarketsAPI {
         }
 
         return priceResponseWrapper;
+    }
+
+    public ItemResponseWrapper getItem(String materialName) throws IOException {
+        return getItem(materialName, null);
     }
 
     /**
@@ -99,11 +115,11 @@ public class MCSDMarketsAPI {
 
     /**
      * Get available items by page
-     * @param request The {@link ItemPageRequest} containing the page details and mcVersion
+     * @param request The {@link PageRequest} containing the page details
      * @return A {@link ItemPageResponseWrapper} containing the successful/error responses
      * @throws IOException If an error communicating with the destination fails
      */
-    public ItemPageResponseWrapper getItems(ItemPageRequest request) throws IOException {
+    public ItemPageResponseWrapper getItems(PageRequest request) throws IOException {
         HttpURLConnection connection = getPostHttpConnection(getBaseUrl() + GET_ITEMS_URI, request);
         ItemPageResponseWrapper itemPageResponseWrapper = new ItemPageResponseWrapper();
 
@@ -150,6 +166,7 @@ public class MCSDMarketsAPI {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("Accept", "application/json");
         connection.setRequestProperty("x-api-key", apiKey);
+        connection.setRequestProperty("x-client-version", mcVersion);
 
         return connection;
     }
