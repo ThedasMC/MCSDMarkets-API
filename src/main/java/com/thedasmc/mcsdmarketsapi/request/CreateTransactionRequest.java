@@ -10,6 +10,7 @@ public class CreateTransactionRequest {
     private TransactionType transactionType;
     private String material;
     private Integer quantity;
+    private Integer data;
 
     public UUID getPlayerId() {
         return playerId;
@@ -43,6 +44,14 @@ public class CreateTransactionRequest {
         this.quantity = quantity;
     }
 
+    public Integer getData() {
+        return data;
+    }
+
+    public void setData(Integer data) {
+        this.data = data;
+    }
+
     @Override
     public String toString() {
         return "CreateTransactionRequest{" +
@@ -50,6 +59,7 @@ public class CreateTransactionRequest {
             ", transactionType=" + transactionType +
             ", material='" + material + '\'' +
             ", quantity=" + quantity +
+            ", data=" + data +
             '}';
     }
 }
