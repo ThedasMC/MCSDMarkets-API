@@ -36,7 +36,6 @@ public class MCSDMarketsAPI {
 
     private static final String BASE_URL = "https://api.thedasmc.com";
     private static final String GET_PRICE_URI = "/v1/item/{material}";
-    private static final String GET_LEGACY_PRICE_URI = "/v1/item/{material}/{data}";
     private static final String CREATE_TRANSACTION_URI = "/v1/transaction";
     private static final String GET_ITEMS_URI = "/v1/items";
     private static final String GET_BATCH_ITEMS_URI = "/v1/batch/items?materials={materials}";
@@ -60,21 +59,11 @@ public class MCSDMarketsAPI {
     /**
      * Get the material/item data, such as pricing
      * @param materialName The material name. Works with old and new Materials
-     * @param data The legacy data used when creating an ItemStack (<1.13)
      * @return {@link ItemResponseWrapper} containing the successful/error responses
      * @throws IOException If an error communicating with the destination fails
      */
-    public ItemResponseWrapper getItem(String materialName, Integer data) throws IOException {
-        HttpURLConnection connection;
-
-        if (data == null) {
-            connection = getGetHttpConnection(
-                BASE_URL + GET_PRICE_URI.replace("{material}", materialName.trim().toUpperCase()));
-        } else {
-            connection = getHttpConnection(
-                BASE_URL + GET_LEGACY_PRICE_URI.replace("{material}", materialName.trim().toUpperCase()).replace("{data}", String.valueOf(data)));
-        }
-
+    public ItemResponseWrapper getItem(String materialName) throws IOException {
+        HttpURLConnection connection = getGetHttpConnection(BASE_URL + GET_PRICE_URI.replace("{material}", materialName.trim().toUpperCase()));
         ItemResponseWrapper priceResponseWrapper = new ItemResponseWrapper();
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -86,10 +75,6 @@ public class MCSDMarketsAPI {
         }
 
         return priceResponseWrapper;
-    }
-
-    public ItemResponseWrapper getItem(String materialName) throws IOException {
-        return getItem(materialName, null);
     }
 
     /**
