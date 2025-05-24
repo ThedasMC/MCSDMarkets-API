@@ -2,6 +2,7 @@ package com.thedasmc.mcsdmarketsapi;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.thedasmc.mcsdmarketsapi.json.deserializer.CreateTransactionResponseDeserializer;
 import com.thedasmc.mcsdmarketsapi.json.deserializer.ItemPageResponseDeserializer;
 import com.thedasmc.mcsdmarketsapi.json.deserializer.ItemResponseDeserializer;
@@ -12,6 +13,7 @@ import com.thedasmc.mcsdmarketsapi.response.impl.CreateTransactionResponse;
 import com.thedasmc.mcsdmarketsapi.response.impl.ErrorResponse;
 import com.thedasmc.mcsdmarketsapi.response.impl.ItemPageResponse;
 import com.thedasmc.mcsdmarketsapi.response.impl.ItemResponse;
+import com.thedasmc.mcsdmarketsapi.response.wrapper.BatchItemResponseWrapper;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.CreateTransactionResponseWrapper;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.ItemPageResponseWrapper;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.ItemResponseWrapper;
@@ -22,6 +24,10 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * The main class for interacting with the MCSDMarketsAPI
@@ -29,23 +35,17 @@ import java.nio.charset.StandardCharsets;
 public class MCSDMarketsAPI {
 
     private static final String BASE_URL = "https://api.thedasmc.com";
-    private static final String BASE_URL_TEST = "http://localhost";
     private static final String GET_PRICE_URI = "/v1/item/{material}";
     private static final String GET_LEGACY_PRICE_URI = "/v1/item/{material}/{data}";
     private static final String CREATE_TRANSACTION_URI = "/v1/transaction";
     private static final String GET_ITEMS_URI = "/v1/items";
+    private static final String GET_BATCH_ITEMS_URI = "/v1/batch/items?materials={materials}";
 
     private final String apiKey;
     private final String mcVersion;
-    private final boolean testMode;
     private final Gson gson;
 
     public MCSDMarketsAPI(String apiKey, String mcVersion) {
-        this(apiKey, mcVersion, false);
-    }
-
-    public MCSDMarketsAPI(String apiKey, String mcVersion, boolean testMode) {
-        this.testMode = testMode;
         this.apiKey = apiKey;
         this.mcVersion = mcVersion;
 
@@ -69,16 +69,16 @@ public class MCSDMarketsAPI {
 
         if (data == null) {
             connection = getGetHttpConnection(
-                getBaseUrl() + GET_PRICE_URI.replace("{material}", materialName.trim().toUpperCase()));
+                BASE_URL + GET_PRICE_URI.replace("{material}", materialName.trim().toUpperCase()));
         } else {
             connection = getHttpConnection(
-                getBaseUrl() + GET_LEGACY_PRICE_URI.replace("{material}", materialName.trim().toUpperCase()).replace("{data}", String.valueOf(data)));
+                BASE_URL + GET_LEGACY_PRICE_URI.replace("{material}", materialName.trim().toUpperCase()).replace("{data}", String.valueOf(data)));
         }
 
         ItemResponseWrapper priceResponseWrapper = new ItemResponseWrapper();
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            ItemResponse response = gson.fromJson(new InputStreamReader(connection.getInputStream()), ItemResponse.class);
+            ItemResponse response = readResponse(connection, ItemResponse.class);
             priceResponseWrapper.setSuccessful(true);
             priceResponseWrapper.setSuccessfulResponse(response);
         } else {
@@ -99,11 +99,11 @@ public class MCSDMarketsAPI {
      * @throws IOException If an error communicating with the destination fails
      */
     public CreateTransactionResponseWrapper createTransaction(CreateTransactionRequest request) throws IOException {
-        HttpURLConnection connection = getPostHttpConnection(getBaseUrl() + CREATE_TRANSACTION_URI, request);
+        HttpURLConnection connection = getPostHttpConnection(BASE_URL + CREATE_TRANSACTION_URI, request);
         CreateTransactionResponseWrapper createTransactionResponseWrapper = new CreateTransactionResponseWrapper();
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            CreateTransactionResponse response = gson.fromJson(new InputStreamReader(connection.getInputStream()), CreateTransactionResponse.class);
+            CreateTransactionResponse response = readResponse(connection, CreateTransactionResponse.class);
             createTransactionResponseWrapper.setSuccessful(true);
             createTransactionResponseWrapper.setSuccessfulResponse(response);
         } else {
@@ -120,11 +120,11 @@ public class MCSDMarketsAPI {
      * @throws IOException If an error communicating with the destination fails
      */
     public ItemPageResponseWrapper getItems(PageRequest request) throws IOException {
-        HttpURLConnection connection = getPostHttpConnection(getBaseUrl() + GET_ITEMS_URI, request);
+        HttpURLConnection connection = getPostHttpConnection(BASE_URL + GET_ITEMS_URI, request);
         ItemPageResponseWrapper itemPageResponseWrapper = new ItemPageResponseWrapper();
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            ItemPageResponse response = gson.fromJson(new InputStreamReader(connection.getInputStream()), ItemPageResponse.class);
+            ItemPageResponse response = readResponse(connection, ItemPageResponse.class);
             itemPageResponseWrapper.setSuccessful(true);
             itemPageResponseWrapper.setSuccessfulResponse(response);
         } else {
@@ -134,8 +134,40 @@ public class MCSDMarketsAPI {
         return itemPageResponseWrapper;
     }
 
-    private String getBaseUrl() {
-        return testMode ? BASE_URL_TEST : BASE_URL;
+    /**
+     * Get multiple items at once. This is useful when you need to get multiple items' prices for a batch sale, as an example.
+     * @param materials The materials to get the data for
+     * @return A {@link BatchItemResponseWrapper} containing the successful/error responses
+     * @throws IOException If an error communicating with the destination fails
+     */
+    public BatchItemResponseWrapper getItems(Collection<String> materials) throws IOException {
+        materials = new HashSet<>(materials);
+
+        if (materials.isEmpty())
+            throw new IllegalArgumentException("No materials provided");
+
+        HttpURLConnection connection = getGetHttpConnection(BASE_URL + GET_BATCH_ITEMS_URI.replace("{materials}", String.join(",", materials)));
+        BatchItemResponseWrapper batchItemResponseWrapper = new BatchItemResponseWrapper();
+
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            List<ItemResponse> response = readResponseList(connection);
+            batchItemResponseWrapper.setSuccessful(true);
+            batchItemResponseWrapper.setSuccessfulResponse(response);
+        } else {
+            batchItemResponseWrapper.setErrorResponse(getErrorResponse(connection));
+        }
+
+        return batchItemResponseWrapper;
+    }
+
+    /**
+     * Get multiple items at once. This is useful when you need to get multiple items' prices for a batch sale, as an example.
+     * @param materials The materials to get the data for
+     * @return A {@link BatchItemResponseWrapper} containing the successful/error responses
+     * @throws IOException If an error communicating with the destination fails
+     */
+    public BatchItemResponseWrapper getItems(String... materials) throws IOException {
+        return getItems(Arrays.asList(materials));
     }
 
     private HttpURLConnection getGetHttpConnection(String url) throws IOException {
@@ -161,7 +193,7 @@ public class MCSDMarketsAPI {
         return connection;
     }
 
-    private HttpURLConnection getHttpConnection(String urlString) throws IOException {
+    HttpURLConnection getHttpConnection(String urlString) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("Accept", "application/json");
@@ -171,8 +203,28 @@ public class MCSDMarketsAPI {
         return connection;
     }
 
-    private ErrorResponse getErrorResponse(HttpURLConnection connection) {
-        return gson.fromJson(new InputStreamReader(connection.getErrorStream()), ErrorResponse.class);
+    private ErrorResponse getErrorResponse(HttpURLConnection connection) throws IOException {
+        try (InputStreamReader isr = new InputStreamReader(connection.getErrorStream())) {
+            return gson.fromJson(isr, ErrorResponse.class);
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private <T> T readResponse(HttpURLConnection connection, Class<T> clazz) throws IOException {
+        try (InputStreamReader isr = new InputStreamReader(connection.getInputStream())) {
+            return gson.fromJson(isr, clazz);
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private <T> List<T> readResponseList(HttpURLConnection connection) throws IOException {
+        try (InputStreamReader isr = new InputStreamReader(connection.getInputStream())) {
+            return gson.fromJson(isr, new TypeToken<List<T>>(){}.getType());
+        } finally {
+            connection.disconnect();
+        }
     }
 
 }
