@@ -13,11 +13,10 @@ public class CreateTransactionRequestSerializer implements JsonSerializer<Create
     @Override
     public JsonElement serialize(CreateTransactionRequest src, Type typeOfSrc, JsonSerializationContext context) {
         JsonObject root = new JsonObject();
-        root.addProperty("playerId", src.getPlayerId().toString());
-        root.addProperty("transactionType", src.getTransactionType().name());
+        root.addProperty("playerId", src.getPlayerId() == null ? null : src.getPlayerId().toString());
+        root.addProperty("transactionType", src.getTransactionType() == null ? null : src.getTransactionType().name());
         root.addProperty("material", src.getMaterial());
         root.addProperty("quantity", src.getQuantity());
-        root.addProperty("data", src.getData());
 
         return root;
     }
