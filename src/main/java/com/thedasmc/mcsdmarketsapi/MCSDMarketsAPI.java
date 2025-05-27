@@ -7,16 +7,11 @@ import com.thedasmc.mcsdmarketsapi.json.deserializer.CreateTransactionResponseDe
 import com.thedasmc.mcsdmarketsapi.json.deserializer.ItemPageResponseDeserializer;
 import com.thedasmc.mcsdmarketsapi.json.deserializer.ItemResponseDeserializer;
 import com.thedasmc.mcsdmarketsapi.json.serializer.CreateTransactionRequestSerializer;
+import com.thedasmc.mcsdmarketsapi.request.BatchSellRequest;
 import com.thedasmc.mcsdmarketsapi.request.CreateTransactionRequest;
 import com.thedasmc.mcsdmarketsapi.request.PageRequest;
-import com.thedasmc.mcsdmarketsapi.response.impl.CreateTransactionResponse;
-import com.thedasmc.mcsdmarketsapi.response.impl.ErrorResponse;
-import com.thedasmc.mcsdmarketsapi.response.impl.ItemPageResponse;
-import com.thedasmc.mcsdmarketsapi.response.impl.ItemResponse;
-import com.thedasmc.mcsdmarketsapi.response.wrapper.BatchItemResponseWrapper;
-import com.thedasmc.mcsdmarketsapi.response.wrapper.CreateTransactionResponseWrapper;
-import com.thedasmc.mcsdmarketsapi.response.wrapper.ItemPageResponseWrapper;
-import com.thedasmc.mcsdmarketsapi.response.wrapper.ItemResponseWrapper;
+import com.thedasmc.mcsdmarketsapi.response.impl.*;
+import com.thedasmc.mcsdmarketsapi.response.wrapper.*;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -37,6 +32,7 @@ public class MCSDMarketsAPI {
     private static final String BASE_URL = "https://api.thedasmc.com";
     private static final String GET_PRICE_URI = "/v1/item/{material}";
     private static final String CREATE_TRANSACTION_URI = "/v1/transaction";
+    private static final String BATCH_SELL_URI = "/v1/transaction/batch/sale";
     private static final String GET_ITEMS_URI = "/v1/items";
     private static final String GET_BATCH_ITEMS_URI = "/v1/batch/items?materials={materials}";
 
@@ -71,7 +67,7 @@ public class MCSDMarketsAPI {
             priceResponseWrapper.setSuccessful(true);
             priceResponseWrapper.setSuccessfulResponse(response);
         } else {
-            priceResponseWrapper.setErrorResponse(getErrorResponse(connection));
+            priceResponseWrapper.setErrorResponse(readErrorResponse(connection));
         }
 
         return priceResponseWrapper;
@@ -80,7 +76,7 @@ public class MCSDMarketsAPI {
     /**
      * Execute/Create a transaction
      * @param request {@link CreateTransactionRequest} containing the necessary data to make the request
-     * @return A {@link CreateTransactionResponse} containing the successful/error responses
+     * @return A {@link CreateTransactionResponseWrapper} containing the successful/error responses
      * @throws IOException If an error communicating with the destination fails
      */
     public CreateTransactionResponseWrapper createTransaction(CreateTransactionRequest request) throws IOException {
@@ -92,10 +88,34 @@ public class MCSDMarketsAPI {
             createTransactionResponseWrapper.setSuccessful(true);
             createTransactionResponseWrapper.setSuccessfulResponse(response);
         } else {
-            createTransactionResponseWrapper.setErrorResponse(getErrorResponse(connection));
+            createTransactionResponseWrapper.setErrorResponse(readErrorResponse(connection));
         }
 
         return createTransactionResponseWrapper;
+    }
+
+    /**
+     * Sell items in a batch. Useful for selling multiple items at a time for a single player.
+     * @param request A {@link BatchSellRequest} containing the necessary data to make the request
+     * @return A {@link BatchSellResponseWrapper} containing the successful/error responses
+     * @throws IOException If an error communicating with the destination fails
+     */
+    public BatchSellResponseWrapper batchSell(BatchSellRequest request) throws IOException {
+        if (request.getTransactions() == null || request.getTransactions().isEmpty())
+            throw new IllegalArgumentException("No transactions provided");
+
+        HttpURLConnection connection = getPostHttpConnection(BASE_URL + BATCH_SELL_URI, request);
+        BatchSellResponseWrapper batchSellResponseWrapper = new BatchSellResponseWrapper();
+
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            BatchSellResponse response = readResponse(connection, BatchSellResponse.class);
+            batchSellResponseWrapper.setSuccessful(true);
+            batchSellResponseWrapper.setSuccessfulResponse(response);
+        } else {
+            batchSellResponseWrapper.setErrorResponse(readErrorResponse(connection));
+        }
+
+        return batchSellResponseWrapper;
     }
 
     /**
@@ -113,7 +133,7 @@ public class MCSDMarketsAPI {
             itemPageResponseWrapper.setSuccessful(true);
             itemPageResponseWrapper.setSuccessfulResponse(response);
         } else {
-            itemPageResponseWrapper.setErrorResponse(getErrorResponse(connection));
+            itemPageResponseWrapper.setErrorResponse(readErrorResponse(connection));
         }
 
         return itemPageResponseWrapper;
@@ -139,7 +159,7 @@ public class MCSDMarketsAPI {
             batchItemResponseWrapper.setSuccessful(true);
             batchItemResponseWrapper.setSuccessfulResponse(response);
         } else {
-            batchItemResponseWrapper.setErrorResponse(getErrorResponse(connection));
+            batchItemResponseWrapper.setErrorResponse(readErrorResponse(connection));
         }
 
         return batchItemResponseWrapper;
@@ -188,7 +208,7 @@ public class MCSDMarketsAPI {
         return connection;
     }
 
-    private ErrorResponse getErrorResponse(HttpURLConnection connection) throws IOException {
+    private ErrorResponse readErrorResponse(HttpURLConnection connection) throws IOException {
         try (InputStreamReader isr = new InputStreamReader(connection.getErrorStream())) {
             return gson.fromJson(isr, ErrorResponse.class);
         } finally {

@@ -17,7 +17,6 @@ public class CreateTransactionRequestSerializer implements JsonSerializer<Create
         root.addProperty("transactionType", src.getTransactionType() == null ? null : src.getTransactionType().name());
         root.addProperty("material", src.getMaterial());
         root.addProperty("quantity", src.getQuantity());
-        root.addProperty("data", src.getData());
 
         return root;
     }

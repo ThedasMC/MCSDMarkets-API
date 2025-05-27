@@ -1,12 +1,11 @@
 package com.thedasmc.mcsdmarketsapi;
 
 import com.thedasmc.mcsdmarketsapi.enums.TransactionType;
+import com.thedasmc.mcsdmarketsapi.request.BatchSellRequest;
+import com.thedasmc.mcsdmarketsapi.request.BatchTransactionRequest;
 import com.thedasmc.mcsdmarketsapi.request.CreateTransactionRequest;
 import com.thedasmc.mcsdmarketsapi.request.PageRequest;
-import com.thedasmc.mcsdmarketsapi.response.wrapper.BatchItemResponseWrapper;
-import com.thedasmc.mcsdmarketsapi.response.wrapper.CreateTransactionResponseWrapper;
-import com.thedasmc.mcsdmarketsapi.response.wrapper.ItemPageResponseWrapper;
-import com.thedasmc.mcsdmarketsapi.response.wrapper.ItemResponseWrapper;
+import com.thedasmc.mcsdmarketsapi.response.wrapper.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -134,6 +133,56 @@ public class MCSDMarketsAPITest {
         verify(connection).getOutputStream();
         verify(connection.getOutputStream()).close();
         verify(connection).disconnect();
+    }
+
+    @Test
+    public void testBatchSellSuccessfulResponse() throws IOException {
+        final String jsonResponse =
+            "{\n" +
+            "    \"transactions\": [\n" +
+            "        {\n" +
+            "            \"transactionId\": 68,\n" +
+            "            \"playerId\": \"b5a3e507-e849-4f1e-86d6-1b2b5b6f0d78\",\n" +
+            "            \"transactionType\": \"SALE\",\n" +
+            "            \"material\": \"DIAMOND\",\n" +
+            "            \"quantity\": 1,\n" +
+            "            \"executed\": 1748304546481\n" +
+            "        },\n" +
+            "        {\n" +
+            "            \"transactionId\": 69,\n" +
+            "            \"playerId\": \"b5a3e507-e849-4f1e-86d6-1b2b5b6f0d78\",\n" +
+            "            \"transactionType\": \"SALE\",\n" +
+            "            \"material\": \"OAK_LOG\",\n" +
+            "            \"quantity\": 1,\n" +
+            "            \"executed\": 1748304546481\n" +
+            "        }\n" +
+            "    ],\n" +
+            "    \"unsellableMaterials\": [\n" +
+            "        \"INVALID_ITEM_MATERIAL\"\n" +
+            "    ]\n" +
+            "}";
+
+        HttpURLConnection connection = mock(HttpURLConnection.class);
+        when(connection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        when(connection.getOutputStream()).thenReturn(mock(java.io.OutputStream.class));
+        when(connection.getInputStream()).thenReturn(asStream(jsonResponse));
+
+        BatchSellRequest request = new BatchSellRequest();
+        request.setTransactions(Collections.singletonList(new BatchTransactionRequest()));//If the transaction list is null or empty, an IllegalArgumentException is thrown
+
+        MCSDMarketsAPI api = getApi(connection);
+        BatchSellResponseWrapper responseWrapper = api.batchSell(request);
+        assertTrue(responseWrapper.isSuccessful());
+        assertNotNull(responseWrapper.getSuccessfulResponse());
+        assertNull(responseWrapper.getErrorResponse());
+        assertEquals(2, responseWrapper.getSuccessfulResponse().getTransactions().size());
+        assertEquals(1, responseWrapper.getSuccessfulResponse().getUnsellableMaterials().size());
+    }
+
+    @Test
+    public void testBatchSellThrowsExceptionWhenNoTransactionsSpecified() {
+        MCSDMarketsAPI api = getApi();
+        assertThrows(IllegalArgumentException.class, () -> api.batchSell(new BatchSellRequest()));
     }
 
     @Test
