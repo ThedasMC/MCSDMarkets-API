@@ -155,7 +155,7 @@ public class MCSDMarketsAPI {
         BatchItemResponseWrapper batchItemResponseWrapper = new BatchItemResponseWrapper();
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            List<ItemResponse> response = readResponseList(connection);
+            List<ItemResponse> response = readResponseList(connection, ItemResponse.class);
             batchItemResponseWrapper.setSuccessful(true);
             batchItemResponseWrapper.setSuccessfulResponse(response);
         } else {
@@ -224,9 +224,9 @@ public class MCSDMarketsAPI {
         }
     }
 
-    private <T> List<T> readResponseList(HttpURLConnection connection) throws IOException {
+    private <T> List<T> readResponseList(HttpURLConnection connection, Class<T> clazz) throws IOException {
         try (InputStreamReader isr = new InputStreamReader(connection.getInputStream())) {
-            return gson.fromJson(isr, new TypeToken<List<T>>(){}.getType());
+            return gson.fromJson(isr, TypeToken.getParameterized(List.class, clazz).getType());
         } finally {
             connection.disconnect();
         }
