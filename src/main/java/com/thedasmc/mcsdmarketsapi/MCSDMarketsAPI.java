@@ -4,12 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.thedasmc.mcsdmarketsapi.json.deserializer.CreateTransactionResponseDeserializer;
+import com.thedasmc.mcsdmarketsapi.json.deserializer.InstantDeserializer;
 import com.thedasmc.mcsdmarketsapi.json.deserializer.ItemPageResponseDeserializer;
 import com.thedasmc.mcsdmarketsapi.json.deserializer.ItemResponseDeserializer;
 import com.thedasmc.mcsdmarketsapi.json.serializer.CreateTransactionRequestSerializer;
-import com.thedasmc.mcsdmarketsapi.request.BatchSellRequest;
-import com.thedasmc.mcsdmarketsapi.request.CreateTransactionRequest;
-import com.thedasmc.mcsdmarketsapi.request.PageRequest;
+import com.thedasmc.mcsdmarketsapi.request.*;
 import com.thedasmc.mcsdmarketsapi.response.impl.*;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.*;
 
@@ -19,10 +18,8 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.time.Instant;
+import java.util.*;
 
 /**
  * The main class for interacting with the MCSDMarketsAPI
@@ -35,6 +32,10 @@ public class MCSDMarketsAPI {
     private static final String BATCH_SELL_URI = "/v1/transaction/batch/sale";
     private static final String GET_ITEMS_URI = "/v1/items";
     private static final String GET_BATCH_ITEMS_URI = "/v1/batch/items?materials={materials}";
+    private static final String GET_LIMIT_ORDERS_URI = "/v1/limit-orders";
+    private static final String SUBMIT_LIMIT_ORDER_URI = "/v1/limit-order";
+    private static final String CANCEL_LIMIT_ORDER_URI = "/v1/limit-order/cancel";
+    private static final String GET_LIMIT_ORDER_URI = "/v1/limit-order/{playerId}/{limitOrderId}";
 
     private final String apiKey;
     private final String mcVersion;
@@ -49,6 +50,7 @@ public class MCSDMarketsAPI {
             .registerTypeAdapter(ItemResponseDeserializer.class, new ItemResponseDeserializer())
             .registerTypeAdapter(ItemPageResponse.class, new ItemPageResponseDeserializer())
             .registerTypeAdapter(CreateTransactionRequest.class, new CreateTransactionRequestSerializer())
+            .registerTypeAdapter(Instant.class, new InstantDeserializer())
             .create();
     }
 
@@ -173,6 +175,91 @@ public class MCSDMarketsAPI {
      */
     public BatchItemResponseWrapper getItems(String... materials) throws IOException {
         return getItems(Arrays.asList(materials));
+    }
+
+    /**
+     * Get a player's limit orders
+     * @param request The {@link LimitOrderPageRequest} containing the page and player details. The first page is 0.
+     * @return A {@link LimitOrderPageResponseWrapper} containing the successful/error responses
+     * @throws IOException If an error communicating with the destination fails
+     */
+    public LimitOrderPageResponseWrapper getLimitOrders(LimitOrderPageRequest request) throws IOException {
+        HttpURLConnection connection = getPostHttpConnection(BASE_URL + GET_LIMIT_ORDERS_URI, request);
+        LimitOrderPageResponseWrapper limitOrderPageResponseWrapper = new LimitOrderPageResponseWrapper();
+
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            LimitOrderPageResponse response = readResponse(connection, LimitOrderPageResponse.class);
+            limitOrderPageResponseWrapper.setSuccessful(true);
+            limitOrderPageResponseWrapper.setSuccessfulResponse(response);
+        } else {
+            limitOrderPageResponseWrapper.setErrorResponse(readErrorResponse(connection));
+        }
+
+        return limitOrderPageResponseWrapper;
+    }
+
+    /**
+     * Submit a limit order
+     * @param request The {@link SubmitLimitOrderRequest} containing the necessary data to make the request
+     * @return A {@link LimitOrderResponseWrapper} containing the successful/error responses
+     * @throws IOException If an error communicating with the destination fails
+     */
+    public LimitOrderResponseWrapper submitLimitOrder(SubmitLimitOrderRequest request) throws IOException {
+        HttpURLConnection connection = getPostHttpConnection(BASE_URL + SUBMIT_LIMIT_ORDER_URI, request);
+        LimitOrderResponseWrapper limitOrderResponseWrapper = new LimitOrderResponseWrapper();
+
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            LimitOrderResponse response = readResponse(connection, LimitOrderResponse.class);
+            limitOrderResponseWrapper.setSuccessful(true);
+            limitOrderResponseWrapper.setSuccessfulResponse(response);
+        } else {
+            limitOrderResponseWrapper.setErrorResponse(readErrorResponse(connection));
+        }
+
+        return limitOrderResponseWrapper;
+    }
+
+    /**
+     * Cancel a limit order
+     * @param request The {@link CancelLimitOrderRequest} containing the necessary data to make the request
+     * @return A {@link LimitOrderCancelResponseWrapper} containing the successful/error responses
+     * @throws IOException If an error communicating with the destination fails
+     */
+    public LimitOrderCancelResponseWrapper cancelLimitOrder(CancelLimitOrderRequest request) throws IOException {
+        HttpURLConnection connection = getPostHttpConnection(BASE_URL + CANCEL_LIMIT_ORDER_URI, request);
+        LimitOrderCancelResponseWrapper limitOrderCancelResponseWrapper = new LimitOrderCancelResponseWrapper();
+
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            LimitOrderCancelResponse response = readResponse(connection, LimitOrderCancelResponse.class);
+            limitOrderCancelResponseWrapper.setSuccessful(true);
+            limitOrderCancelResponseWrapper.setSuccessfulResponse(response);
+        } else {
+            limitOrderCancelResponseWrapper.setErrorResponse(readErrorResponse(connection));
+        }
+
+        return limitOrderCancelResponseWrapper;
+    }
+
+    /**
+     * Get a limit order by player and order ID
+     * @param limitOrderId The limitOrderId for the associated limit order
+     * @param playerId The playerId for the associated limit order
+     * @return A {@link LimitOrderResponseWrapper} containing the successful/error responses
+     * @throws IOException If an error communicating with the destination fails
+     */
+    public LimitOrderResponseWrapper getLimitOrder(Long limitOrderId, UUID playerId) throws IOException {
+        HttpURLConnection connection = getGetHttpConnection(BASE_URL + GET_LIMIT_ORDER_URI.replace("{playerId}", playerId.toString()).replace("{limitOrderId}", limitOrderId.toString()));
+        LimitOrderResponseWrapper limitOrderResponseWrapper = new LimitOrderResponseWrapper();
+
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            LimitOrderResponse response = readResponse(connection, LimitOrderResponse.class);
+            limitOrderResponseWrapper.setSuccessful(true);
+            limitOrderResponseWrapper.setSuccessfulResponse(response);
+        } else {
+            limitOrderResponseWrapper.setErrorResponse(readErrorResponse(connection));
+        }
+
+        return limitOrderResponseWrapper;
     }
 
     private HttpURLConnection getGetHttpConnection(String url) throws IOException {

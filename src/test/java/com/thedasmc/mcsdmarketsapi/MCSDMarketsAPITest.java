@@ -1,16 +1,14 @@
 package com.thedasmc.mcsdmarketsapi;
 
 import com.thedasmc.mcsdmarketsapi.enums.TransactionType;
-import com.thedasmc.mcsdmarketsapi.request.BatchSellRequest;
-import com.thedasmc.mcsdmarketsapi.request.BatchTransactionRequest;
-import com.thedasmc.mcsdmarketsapi.request.CreateTransactionRequest;
-import com.thedasmc.mcsdmarketsapi.request.PageRequest;
+import com.thedasmc.mcsdmarketsapi.request.*;
 import com.thedasmc.mcsdmarketsapi.response.wrapper.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
@@ -273,6 +271,123 @@ public class MCSDMarketsAPITest {
     public void testGetBatchItemsThrowsExceptionWhenNoItemsSpecified() {
         MCSDMarketsAPI api = getApi();
         assertThrows(IllegalArgumentException.class, () -> api.getItems(Collections.emptyList()));
+    }
+
+    @Test
+    public void testGetLimitOrdersSuccessfulResponse() throws IOException {
+        final String jsonResponse =
+            "{\n" +
+            "  \"page\": 0,\n" +
+            "  \"pages\": 10,\n" +
+            "  \"limitOrders\": [\n" +
+            "    {\n" +
+            "      \"limitOrderId\": 12345,\n" +
+            "      \"material\": \"DIAMOND\",\n" +
+            "      \"playerId\": \"3ee0ea1f-6d09-449f-9d3a-e5ae29c6995a\",\n" +
+            "      \"submitted\": \"1756250877349\",\n" +
+            "      \"transactionType\": \"PURCHASE\",\n" +
+            "      \"limitPrice\": 99.99,\n" +
+            "      \"quantity\": 1\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+
+        HttpURLConnection connection = mock(HttpURLConnection.class);
+        when(connection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        when(connection.getOutputStream()).thenReturn(mock(OutputStream.class));
+        when(connection.getInputStream()).thenReturn(asStream(jsonResponse));
+
+        MCSDMarketsAPI api = getApi(connection);
+        LimitOrderPageResponseWrapper responseWrapper = api.getLimitOrders(new LimitOrderPageRequest());
+
+        assertTrue(responseWrapper.isSuccessful());
+        assertNotNull(responseWrapper.getSuccessfulResponse());
+        assertEquals(1, responseWrapper.getSuccessfulResponse().getLimitOrders().size());
+        assertNull(responseWrapper.getErrorResponse());
+    }
+
+    @Test
+    public void testSubmitLimitOrderSuccessfulResponse() throws IOException {
+        final String jsonResponse =
+            "{\n" +
+            "  \"limitOrderId\": 12345,\n" +
+            "  \"material\": \"DIAMOND\",\n" +
+            "  \"playerId\": \"3ee0ea1f-6d09-449f-9d3a-e5ae29c6995a\",\n" +
+            "  \"submitted\": \"1756250877349\",\n" +
+            "  \"transactionType\": \"PURCHASE\",\n" +
+            "  \"limitPrice\": 99.99,\n" +
+            "  \"quantity\": 1\n" +
+            "}";
+
+        HttpURLConnection connection = mock(HttpURLConnection.class);
+        when(connection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        when(connection.getOutputStream()).thenReturn(mock(OutputStream.class));
+        when(connection.getInputStream()).thenReturn(asStream(jsonResponse));
+
+        MCSDMarketsAPI api = getApi(connection);
+        LimitOrderResponseWrapper responseWrapper = api.submitLimitOrder(new SubmitLimitOrderRequest());
+
+        assertTrue(responseWrapper.isSuccessful());
+        assertNotNull(responseWrapper.getSuccessfulResponse());
+        assertNull(responseWrapper.getErrorResponse());
+        assertEquals(12345L, responseWrapper.getSuccessfulResponse().getLimitOrderId());
+        assertNotNull(responseWrapper.getSuccessfulResponse().getPlayerId());
+    }
+
+    @Test
+    public void testCancelLimitOrderSuccessfulResponse() throws IOException {
+        final String jsonResponse =
+            "{\n" +
+            "  \"limitOrderId\": 12345,\n" +
+            "  \"material\": \"DIAMOND\",\n" +
+            "  \"refundAmount\": 99.99,\n" +
+            "  \"partialPayoutAmount\": 99.99,\n" +
+            "  \"refundQuantity\": 100\n" +
+            "}";
+
+        HttpURLConnection connection = mock(HttpURLConnection.class);
+        when(connection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        when(connection.getOutputStream()).thenReturn(mock(OutputStream.class));
+        when(connection.getInputStream()).thenReturn(asStream(jsonResponse));
+
+        MCSDMarketsAPI api = getApi(connection);
+        LimitOrderCancelResponseWrapper responseWrapper = api.cancelLimitOrder(new CancelLimitOrderRequest());
+
+        assertTrue(responseWrapper.isSuccessful());
+        assertNotNull(responseWrapper.getSuccessfulResponse());
+        assertNull(responseWrapper.getErrorResponse());
+        assertEquals(12345L, responseWrapper.getSuccessfulResponse().getLimitOrderId());
+        assertEquals(BigDecimal.valueOf(99.99), responseWrapper.getSuccessfulResponse().getRefundAmount());
+        assertEquals(BigDecimal.valueOf(99.99), responseWrapper.getSuccessfulResponse().getPartialPayoutAmount());
+        assertEquals(100, responseWrapper.getSuccessfulResponse().getRefundQuantity());
+    }
+
+    @Test
+    public void testGetLimitOrderSuccessfulResponse() throws IOException {
+        final String jsonResponse =
+            "{\n" +
+            "  \"limitOrderId\": 12345,\n" +
+            "  \"material\": \"DIAMOND\",\n" +
+            "  \"playerId\": \"3ee0ea1f-6d09-449f-9d3a-e5ae29c6995a\",\n" +
+            "  \"submitted\": \"1756250877349\",\n" +
+            "  \"transactionType\": \"PURCHASE\",\n" +
+            "  \"limitPrice\": 99.99,\n" +
+            "  \"quantity\": 1\n" +
+            "}";
+
+        HttpURLConnection connection = mock(HttpURLConnection.class);
+        when(connection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        when(connection.getOutputStream()).thenReturn(mock(OutputStream.class));
+        when(connection.getInputStream()).thenReturn(asStream(jsonResponse));
+
+        MCSDMarketsAPI api = getApi(connection);
+        LimitOrderResponseWrapper responseWrapper = api.getLimitOrder(12345L, UUID.randomUUID());
+
+        assertTrue(responseWrapper.isSuccessful());
+        assertNotNull(responseWrapper.getSuccessfulResponse());
+        assertNull(responseWrapper.getErrorResponse());
+        assertEquals(12345L, responseWrapper.getSuccessfulResponse().getLimitOrderId());
+        assertNotNull(responseWrapper.getSuccessfulResponse().getPlayerId());
     }
 
     private MCSDMarketsAPI getApi() {

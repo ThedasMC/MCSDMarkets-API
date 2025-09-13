@@ -2,8 +2,8 @@ package com.thedasmc.mcsdmarketsapi.response.impl;
 
 public class PageResponse {
 
-    private Integer page;
-    private Integer pages;
+    protected Integer page;
+    protected Integer pages;
 
     public Integer getPage() {
         return page;
