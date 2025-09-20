@@ -2,8 +2,8 @@ package com.thedasmc.mcsdmarketsapi.request;
 
 public class PageRequest {
 
-    private Integer page;
-    private Integer pageSize;
+    protected Integer page;
+    protected Integer pageSize;
 
     public Integer getPage() {
         return page;
