@@ -36,8 +36,8 @@ public class MCSDMarketsAPI {
     private static final String SUBMIT_LIMIT_ORDER_URI = "/v1/limit-order";
     private static final String CANCEL_LIMIT_ORDER_URI = "/v1/limit-order/cancel";
     private static final String GET_LIMIT_ORDER_URI = "/v1/limit-order/{playerId}/{limitOrderId}";
-    public static final String GET_PRICE_HISTORY_HOURS = "/v1/item/{material}/price/history/hours/{lookBackHours}";
-    public static final String GET_PRICE_HISTORY_DAYS = "/v1/item/{material}/price/history/days/{lookBackDays}";
+    private static final String GET_PRICE_HISTORY_HOURS = "/v1/item/{material}/price/history/hours/{lookBackHours}";
+    private static final String GET_PRICE_HISTORY_DAYS = "/v1/item/{material}/price/history/days/{lookBackDays}";
 
     private final String apiKey;
     private final String mcVersion;
