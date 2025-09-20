@@ -390,6 +390,58 @@ public class MCSDMarketsAPITest {
         assertNotNull(responseWrapper.getSuccessfulResponse().getPlayerId());
     }
 
+    @Test
+    public void testGetHoursHistoricalItemPriceSuccessfulResponse() throws IOException {
+        final String jsonResponse =
+            "[\n" +
+            "  {\n" +
+            "    \"material\": \"DIAMOND\",\n" +
+            "    \"executed\": \"2025-09-20T22:11:17.343\",\n" +
+            "    \"price\": 99.99\n" +
+            "  }\n" +
+            "]";
+
+        HttpURLConnection connection = mock(HttpURLConnection.class);
+        when(connection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        when(connection.getOutputStream()).thenReturn(mock(OutputStream.class));
+        when(connection.getInputStream()).thenReturn(asStream(jsonResponse));
+
+        MCSDMarketsAPI api = getApi(connection);
+        HistoricalItemPriceResponseWrapper responseWrapper = api.getHoursHistoricalItemPrice("DIAMOND", 24);
+
+        assertTrue(responseWrapper.isSuccessful());
+        assertNotNull(responseWrapper.getSuccessfulResponse());
+        assertFalse(responseWrapper.getSuccessfulResponse().isEmpty());
+        assertNull(responseWrapper.getErrorResponse());
+        assertNotNull(responseWrapper.getSuccessfulResponse().get(0).getExecuted());
+    }
+
+    @Test
+    public void testGetDaysHistoricalItemPriceSuccessfulResponse() throws IOException {
+        final String jsonResponse =
+            "[\n" +
+                "  {\n" +
+                "    \"material\": \"DIAMOND\",\n" +
+                "    \"executed\": \"2025-09-20T22:11:17.343\",\n" +
+                "    \"price\": 99.99\n" +
+                "  }\n" +
+                "]";
+
+        HttpURLConnection connection = mock(HttpURLConnection.class);
+        when(connection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        when(connection.getOutputStream()).thenReturn(mock(OutputStream.class));
+        when(connection.getInputStream()).thenReturn(asStream(jsonResponse));
+
+        MCSDMarketsAPI api = getApi(connection);
+        HistoricalItemPriceResponseWrapper responseWrapper = api.getDaysHistoricalItemPrices("DIAMOND", 7);
+
+        assertTrue(responseWrapper.isSuccessful());
+        assertNotNull(responseWrapper.getSuccessfulResponse());
+        assertFalse(responseWrapper.getSuccessfulResponse().isEmpty());
+        assertNull(responseWrapper.getErrorResponse());
+        assertNotNull(responseWrapper.getSuccessfulResponse().get(0).getExecuted());
+    }
+
     private MCSDMarketsAPI getApi() {
         return new MCSDMarketsAPI("abc123", "1.21.3");
     }

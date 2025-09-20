@@ -3,10 +3,7 @@ package com.thedasmc.mcsdmarketsapi;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.thedasmc.mcsdmarketsapi.json.deserializer.CreateTransactionResponseDeserializer;
-import com.thedasmc.mcsdmarketsapi.json.deserializer.InstantDeserializer;
-import com.thedasmc.mcsdmarketsapi.json.deserializer.ItemPageResponseDeserializer;
-import com.thedasmc.mcsdmarketsapi.json.deserializer.ItemResponseDeserializer;
+import com.thedasmc.mcsdmarketsapi.json.deserializer.*;
 import com.thedasmc.mcsdmarketsapi.json.serializer.CreateTransactionRequestSerializer;
 import com.thedasmc.mcsdmarketsapi.request.*;
 import com.thedasmc.mcsdmarketsapi.response.impl.*;
@@ -19,6 +16,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -53,6 +51,7 @@ public class MCSDMarketsAPI {
             .registerTypeAdapter(ItemPageResponse.class, new ItemPageResponseDeserializer())
             .registerTypeAdapter(CreateTransactionRequest.class, new CreateTransactionRequestSerializer())
             .registerTypeAdapter(Instant.class, new InstantDeserializer())
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer())
             .create();
     }
 
