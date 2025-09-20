@@ -36,6 +36,8 @@ public class MCSDMarketsAPI {
     private static final String SUBMIT_LIMIT_ORDER_URI = "/v1/limit-order";
     private static final String CANCEL_LIMIT_ORDER_URI = "/v1/limit-order/cancel";
     private static final String GET_LIMIT_ORDER_URI = "/v1/limit-order/{playerId}/{limitOrderId}";
+    public static final String GET_PRICE_HISTORY_HOURS = "/v1/item/{material}/price/history/hours/{lookBackHours}";
+    public static final String GET_PRICE_HISTORY_DAYS = "/v1/item/{material}/price/history/days/{lookBackDays}";
 
     private final String apiKey;
     private final String mcVersion;
@@ -260,6 +262,43 @@ public class MCSDMarketsAPI {
         }
 
         return limitOrderResponseWrapper;
+    }
+
+    /**
+     * Get historical pricing for an item for a given number of hours in the past.
+     * @param material The material to get the historical pricing for
+     * @param lookBackHours The number of hours in the past to get the historical pricing for
+     * @return A {@link HistoricalItemPriceResponseWrapper} containing the successful/error responses
+     * @throws IOException If an error communicating with the destination fails
+     */
+    public HistoricalItemPriceResponseWrapper getHoursHistoricalItemPrice(String material, int lookBackHours) throws IOException {
+        return getHistoricalItemPrice(BASE_URL + GET_PRICE_HISTORY_HOURS.replace("{material}", material).replace("{lookBackHours}", String.valueOf(lookBackHours)));
+    }
+
+    /**
+     * Get historical pricing for an item for a given number of days in the past.
+     * @param material The material to get the historical pricing for
+     * @param lookBackDays The number of days in the past to get the historical pricing for
+     * @return A {@link HistoricalItemPriceResponseWrapper} containing the successful/error responses
+     * @throws IOException If an error communicating with the destination fails
+     */
+    public HistoricalItemPriceResponseWrapper getDaysHistoricalItemPrices(String material, int lookBackDays) throws IOException {
+        return getHistoricalItemPrice(BASE_URL + GET_PRICE_HISTORY_DAYS.replace("{material}", material).replace("{lookBackDays}", String.valueOf(lookBackDays)));
+    }
+
+    private HistoricalItemPriceResponseWrapper getHistoricalItemPrice(String url) throws IOException {
+        HttpURLConnection connection = getGetHttpConnection(url);
+        HistoricalItemPriceResponseWrapper historicalItemPriceResponseWrapper = new HistoricalItemPriceResponseWrapper();
+
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            List<HistoricalItemPriceResponse> response = readResponseList(connection, HistoricalItemPriceResponse.class);
+            historicalItemPriceResponseWrapper.setSuccessful(true);
+            historicalItemPriceResponseWrapper.setSuccessfulResponse(response);
+        } else {
+            historicalItemPriceResponseWrapper.setErrorResponse(readErrorResponse(connection));
+        }
+
+        return historicalItemPriceResponseWrapper;
     }
 
     private HttpURLConnection getGetHttpConnection(String url) throws IOException {
