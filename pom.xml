@@ -7,6 +7,32 @@
     <groupId>com.thedasmc</groupId>
     <artifactId>MCSDMarkets-API</artifactId>
     <version>1.0</version>
+
+    <name>MCSDMarkets API</name>
+    <description>MCSDMarkets API is the Java library for the MCSDMarkets REST API</description>
+    <url>https://github.com/ThedasMC/MCSDMarkets-API</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>tchristofferson</id>
+            <name>Trent Christofferson</name>
+            <email>tchristofferson@thedasmc.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/ThedasMC/MCSDMarkets-API.git</connection>
+        <developerConnection>scm:git:ssh://github.com:ThedasMC/MCSDMarkets-API.git</developerConnection>
+        <url>https://github.com/ThedasMC/MCSDMarkets-API</url>
+    </scm>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -60,9 +86,23 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.2.8</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
-                <version>0.8.0</version>
+                <version>0.10.0</version>
                 <extensions>true</extensions>
                 <configuration>
                     <publishingServerId>central</publishingServerId>
