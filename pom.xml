@@ -6,7 +6,7 @@
 
     <groupId>com.thedasmc</groupId>
     <artifactId>MCSDMarkets-API</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
 
     <name>MCSDMarkets API</name>
     <description>MCSDMarkets API is the Java library for the MCSDMarkets REST API</description>
