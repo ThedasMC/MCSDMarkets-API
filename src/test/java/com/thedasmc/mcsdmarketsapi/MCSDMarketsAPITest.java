@@ -287,7 +287,10 @@ public class MCSDMarketsAPITest {
             "      \"submitted\": \"1756250877349\",\n" +
             "      \"transactionType\": \"PURCHASE\",\n" +
             "      \"limitPrice\": 99.99,\n" +
-            "      \"quantity\": 1\n" +
+            "      \"quantity\": 1,\n" +
+            "      \"quantityFulfilled\": 1,\n" +
+            "      \"fulfilledAmount\": 9.99,\n" +
+            "      \"fulfillmentPaid\": 0\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -316,7 +319,10 @@ public class MCSDMarketsAPITest {
             "  \"submitted\": \"1756250877349\",\n" +
             "  \"transactionType\": \"PURCHASE\",\n" +
             "  \"limitPrice\": 99.99,\n" +
-            "  \"quantity\": 1\n" +
+            "  \"quantity\": 1,\n" +
+            "  \"quantityFulfilled\": 1,\n" +
+            "  \"fulfilledAmount\": 99.99,\n" +
+            "  \"fulfillmentPaid\": 99.99\n" +
             "}";
 
         HttpURLConnection connection = mock(HttpURLConnection.class);
@@ -372,7 +378,10 @@ public class MCSDMarketsAPITest {
             "  \"submitted\": \"1756250877349\",\n" +
             "  \"transactionType\": \"PURCHASE\",\n" +
             "  \"limitPrice\": 99.99,\n" +
-            "  \"quantity\": 1\n" +
+            "  \"quantity\": 1,\n" +
+            "  \"quantityFulfilled\": 1,\n" +
+            "  \"fulfilledAmount\": 99.99,\n" +
+            "  \"fulfillmentPaid\": 99.99\n" +
             "}";
 
         HttpURLConnection connection = mock(HttpURLConnection.class);

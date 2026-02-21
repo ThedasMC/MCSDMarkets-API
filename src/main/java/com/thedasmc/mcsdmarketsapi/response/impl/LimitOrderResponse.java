@@ -15,6 +15,9 @@ public class LimitOrderResponse {
     private TransactionType transactionType;
     private BigDecimal limitPrice;
     private Integer quantity;
+    private Integer quantityFulfilled;
+    private BigDecimal fulfilledAmount;
+    private BigDecimal fulfillmentPaid;
 
     public Long getLimitOrderId() {
         return limitOrderId;
@@ -72,16 +75,43 @@ public class LimitOrderResponse {
         this.quantity = quantity;
     }
 
+    public Integer getQuantityFulfilled() {
+        return quantityFulfilled;
+    }
+
+    public void setQuantityFulfilled(Integer quantityFulfilled) {
+        this.quantityFulfilled = quantityFulfilled;
+    }
+
+    public BigDecimal getFulfilledAmount() {
+        return fulfilledAmount;
+    }
+
+    public void setFulfilledAmount(BigDecimal fulfilledAmount) {
+        this.fulfilledAmount = fulfilledAmount;
+    }
+
+    public BigDecimal getFulfillmentPaid() {
+        return fulfillmentPaid;
+    }
+
+    public void setFulfillmentPaid(BigDecimal fulfillmentPaid) {
+        this.fulfillmentPaid = fulfillmentPaid;
+    }
+
     @Override
     public String toString() {
         return "LimitOrderResponse{" +
-            "limitOrderId=" + limitOrderId +
-            ", material='" + material + '\'' +
-            ", playerId=" + playerId +
-            ", submitted=" + submitted +
-            ", transactionType=" + transactionType +
-            ", limitPrice=" + limitPrice +
-            ", quantity=" + quantity +
-            '}';
+                "limitOrderId=" + limitOrderId +
+                ", material='" + material + '\'' +
+                ", playerId=" + playerId +
+                ", submitted=" + submitted +
+                ", transactionType=" + transactionType +
+                ", limitPrice=" + limitPrice +
+                ", quantity=" + quantity +
+                ", quantityFulfilled=" + quantityFulfilled +
+                ", fulfilledAmount=" + fulfilledAmount +
+                ", fulfillmentPaid=" + fulfillmentPaid +
+                '}';
     }
 }
