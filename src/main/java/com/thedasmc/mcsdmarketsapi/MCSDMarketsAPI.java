@@ -34,6 +34,7 @@ public class MCSDMarketsAPI {
     private static final String SUBMIT_LIMIT_ORDER_URI = "/v1/limit-order";
     private static final String CANCEL_LIMIT_ORDER_URI = "/v1/limit-order/cancel";
     private static final String GET_LIMIT_ORDER_URI = "/v1/limit-order/{playerId}/{limitOrderId}";
+    private static final String CASHOUT_LIMIT_ORDERS_URI = "/v1/limit-orders/{playerId}/cashout";
     private static final String GET_PRICE_HISTORY_HOURS = "/v1/item/{material}/price/history/hours/{lookBackHours}";
     private static final String GET_PRICE_HISTORY_DAYS = "/v1/item/{material}/price/history/days/{lookBackDays}";
 
@@ -254,6 +255,27 @@ public class MCSDMarketsAPI {
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
             LimitOrderResponse response = readResponse(connection, LimitOrderResponse.class);
+            limitOrderResponseWrapper.setSuccessful(true);
+            limitOrderResponseWrapper.setSuccessfulResponse(response);
+        } else {
+            limitOrderResponseWrapper.setErrorResponse(readErrorResponse(connection));
+        }
+
+        return limitOrderResponseWrapper;
+    }
+
+    /**
+     * Cash out the unclaimed proceeds of a player's limit orders. If a buy order was filled at a lesser price, the difference will be included.
+     * @param playerId The playerId for the associated limit orders
+     * @return A {@link LimitOrderCashoutResponseWrapper} containing the successful/error responses
+     * @throws IOException If an error communicating with the destination fails
+     */
+    public LimitOrderCashoutResponseWrapper cashoutLimitOrders(UUID playerId) throws IOException {
+        HttpURLConnection connection = getPostHttpConnection(BASE_URL + CASHOUT_LIMIT_ORDERS_URI.replace("{playerId}", playerId.toString()), null);
+        LimitOrderCashoutResponseWrapper limitOrderResponseWrapper = new LimitOrderCashoutResponseWrapper();
+
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            LimitOrderCashoutResponse response = readResponse(connection, LimitOrderCashoutResponse.class);
             limitOrderResponseWrapper.setSuccessful(true);
             limitOrderResponseWrapper.setSuccessfulResponse(response);
         } else {

@@ -400,6 +400,32 @@ public class MCSDMarketsAPITest {
     }
 
     @Test
+    public void testCashoutLimitOrdersSuccessfulResponse() throws IOException {
+        final String jsonResponse =
+            "{\n" +
+            "  \"limitOrderIds\": [\n" +
+            "    12345,\n" +
+            "    54321\n" +
+            "  ],\n" +
+            "  \"cashoutAmount\": 99.99\n" +
+            "}";
+
+        HttpURLConnection connection = mock(HttpURLConnection.class);
+        when(connection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        when(connection.getOutputStream()).thenReturn(mock(OutputStream.class));
+        when(connection.getInputStream()).thenReturn(asStream(jsonResponse));
+
+        MCSDMarketsAPI api = getApi(connection);
+        LimitOrderCashoutResponseWrapper responseWrapper = api.cashoutLimitOrders(UUID.randomUUID());
+
+        assertTrue(responseWrapper.isSuccessful());
+        assertNotNull(responseWrapper.getSuccessfulResponse());
+        assertNull(responseWrapper.getErrorResponse());
+        assertEquals(2, responseWrapper.getSuccessfulResponse().getLimitOrderIds().size());
+        assertEquals(BigDecimal.valueOf(99.99), responseWrapper.getSuccessfulResponse().getCashoutAmount());
+    }
+
+    @Test
     public void testGetHoursHistoricalItemPriceSuccessfulResponse() throws IOException {
         final String jsonResponse =
             "[\n" +
